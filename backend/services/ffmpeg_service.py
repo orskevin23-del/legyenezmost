@@ -155,7 +155,7 @@ YCbCr Matrix: None
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,Arial Black,36,&H00FFFFFF,&H0000FFFF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,3,2,2,10,10,150,1
+Style: Default,Arial Black,38,&H00FFFFFF,&H0000FFFF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,3,2,2,10,10,150,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -264,7 +264,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 f'[2:a]volume=0.3[music];'
                 f'[voice][music]amix=inputs=2:duration=first:dropout_transition=2[audio];'
                 # Subtitles
-                f'[0:v]subtitles={subtitle_path}:force_style=\'Fontsize=60,PrimaryColour=&H00FFFFFF,SecondaryColour=&H0000FFFF,Outline=3,Shadow=2,MarginV=120\'[video]'
+                f'[0:v]subtitles={subtitle_path}:force_style=\'Fontsize=38,PrimaryColour=&H00FFFFFF,SecondaryColour=&H00FFFF00,Outline=3,Shadow=2,MarginV=150\'[video]'
             ),
             '-map', '[video]',
             '-map', '[audio]',
@@ -298,7 +298,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             '-i', str(video_path),
             '-i', str(audio_path),
             '-filter_complex',
-            f'[0:v]subtitles={subtitle_path}:force_style=\'Fontsize=60,PrimaryColour=&H00FFFFFF,SecondaryColour=&H0000FFFF,Outline=3,Shadow=2,MarginV=120\'[video]',
+            f'[0:v]subtitles={subtitle_path}:force_style=\'Fontsize=38,PrimaryColour=&H00FFFFFF,SecondaryColour=&H00FFFF00,Outline=3,Shadow=2,MarginV=150\'[video]',
             '-map', '[video]',
             '-map', '1:a',
             '-c:v', 'libx264',
