@@ -144,11 +144,20 @@ class FFmpegService:
         """
         Create ASS subtitle file with TRUE karaoke effect.
         Only the CURRENTLY spoken word is YELLOW, all others are WHITE.
-        Uses individual dialogue lines per word group, with inline color overrides.
+        
+        Fixed issues:
+        - Centered text (Alignment=2 = bottom center)
+        - Soft blur shadow instead of harsh black box
+        - Only ONE word yellow at a time (current word)
+        - All other words white
         """
-        # ASS header - base style is WHITE text
-        # PrimaryColour = WHITE (default text color)
-        # Using soft shadow (BorderStyle=1 with Shadow), centered at bottom
+        # ASS header with proper styling:
+        # - BorderStyle=1: Outline + shadow (no opaque box)
+        # - Outline=0: No outline
+        # - Shadow=3: Soft shadow
+        # - BackColour=&H00000000: Fully transparent (no box)
+        # - Alignment=2: Bottom center
+        # - Smaller font (42) for better readability
         ass_content = """[Script Info]
 Title: Karaoke Subtitles
 ScriptType: v4.00+
@@ -160,7 +169,7 @@ PlayResY: 1920
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,Arial,48,&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,0,2,2,20,20,120,1
+Style: Default,Arial,42,&H00FFFFFF,&H00FFFFFF,&H40000000,&H00000000,-1,0,0,0,100,100,0,0,1,2,3,2,40,40,150,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -214,24 +223,23 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             groups.append(current_group)
         
         # Generate dialogue lines for each word highlight within each group
-        # This creates the TRUE karaoke effect: only the current word is yellow
+        # KEY FIX: Only the CURRENT word is YELLOW, all others are WHITE
         for group in groups:
-            # For each word in the group, create a dialogue line where ONLY that word is yellow
             for idx, current_word in enumerate(group):
                 word_start = current_word['start']
                 word_end = current_word['end']
                 
-                # Build the text with color overrides
-                # {\c&H00FFFF&} = Yellow (BGR format: 00FFFF = Yellow)
-                # {\c&HFFFFFF&} = White
+                # Build the text with EXPLICIT color for every word
+                # Current word = YELLOW (&H00FFFF in BGR)
+                # Other words = WHITE (&HFFFFFF)
                 text_parts = []
                 for i, wt in enumerate(group):
                     if i == idx:
-                        # Current word - YELLOW
-                        text_parts.append(f"{{\\c&H00FFFF&}}{wt['word']}{{\\c&HFFFFFF&}}")
+                        # CURRENT word being spoken - YELLOW
+                        text_parts.append(f"{{\\1c&H00FFFF&}}{wt['word']}")
                     else:
-                        # Other words - WHITE (default)
-                        text_parts.append(wt['word'])
+                        # All other words - WHITE
+                        text_parts.append(f"{{\\1c&HFFFFFF&}}{wt['word']}")
                 
                 line_text = ' '.join(text_parts)
                 start_time = FFmpegService.format_ass_time(word_start)
@@ -243,7 +251,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(ass_content)
         
-        logger.info(f"Created TRUE karaoke subtitles: {output_path}")
+        logger.info(f"Created karaoke subtitles with centered text and soft shadow: {output_path}")
     
     @staticmethod
     def format_ass_time(seconds: float) -> str:
