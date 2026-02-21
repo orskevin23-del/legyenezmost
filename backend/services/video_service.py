@@ -171,19 +171,9 @@ class VideoGenerationService:
                 audio_path_mp3.unlink()
                 logger.info(f"Converted to WAV: {audio_path}")
             
-            # Generate simple word timestamps based on text length
-            # (Since ElevenLabs timestamps API is not working)
-            words = text.split()
-            audio_duration = self._get_audio_duration(audio_path)
-            word_duration = audio_duration / len(words) if words else 1.0
-            
-            word_timestamps = []
-            for i, word in enumerate(words):
-                start_time_ms = int(i * word_duration * 1000)
-                word_timestamps.append({
-                    'character': word,
-                    'start_time_ms': start_time_ms
-                })
+            # Use OpenAI Whisper for accurate word-level timestamps
+            logger.info("Generating word timestamps with OpenAI Whisper...")
+            word_timestamps = await self._get_whisper_timestamps(audio_path, text)
             
             return audio_path, word_timestamps
         
