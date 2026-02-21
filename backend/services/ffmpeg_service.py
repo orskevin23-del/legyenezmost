@@ -273,7 +273,11 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         Assemble video with TTS audio, background music, and subtitles.
         Apply volume ducking to music when TTS is playing.
         """
-        # Use subtitles filter without force_style - ASS file has all styling
+        # Use subtitles filter with force_style to ensure proper styling
+        # BorderStyle=1 (outline+shadow, NO box), Outline=0, Shadow=1
+        # Alignment=2 (bottom center)
+        force_style = "FontName=Arial,FontSize=36,PrimaryColour=&H00FFFFFF,OutlineColour=&H80000000,BackColour=&H00000000,Bold=1,BorderStyle=1,Outline=0,Shadow=1,Alignment=2,MarginV=60"
+        
         cmd = [
             'ffmpeg',
             '-i', str(video_path),
@@ -281,12 +285,10 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             '-i', music_path,
             '-filter_complex',
             (
-                # Audio mixing with ducking
                 f'[1:a]volume=1.0[voice];'
                 f'[2:a]volume=0.3[music];'
                 f'[voice][music]amix=inputs=2:duration=first:dropout_transition=2[audio];'
-                # Subtitles - let ASS file handle all styling
-                f'[0:v]subtitles={subtitle_path}[video]'
+                f"[0:v]subtitles={subtitle_path}:force_style='{force_style}'[video]"
             ),
             '-map', '[video]',
             '-map', '[audio]',
