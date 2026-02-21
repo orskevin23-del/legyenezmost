@@ -263,8 +263,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 f'[1:a]volume=1.0[voice];'
                 f'[2:a]volume=0.3[music];'
                 f'[voice][music]amix=inputs=2:duration=first:dropout_transition=2[audio];'
-                # Subtitles (no force_style - use ASS file colors)
-                f'[0:v]subtitles={subtitle_path}[video]'
+                # Subtitles with EXPLICIT force_style for karaoke colors
+                f'[0:v]subtitles={subtitle_path}:force_style=\'FontName=Arial Black,Fontsize=18,PrimaryColour=&H0000FFFF,Alignment=5,MarginV=150,Outline=3,Shadow=2\'[video]'
             ),
             '-map', '[video]',
             '-map', '[audio]',
