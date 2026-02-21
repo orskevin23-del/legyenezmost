@@ -191,6 +191,75 @@ class VideoGenerationService:
             '-v', 'quiet',
             '-print_format', 'json',
             '-show_format',
+    
+    async def _get_whisper_timestamps(self, audio_path: Path, original_text: str) -> List[Dict]:
+        """
+        Use OpenAI Whisper API to get accurate word-level timestamps from audio.
+        """
+        try:
+            from openai import OpenAI
+            
+            openai_api_key = os.getenv("OPENAI_API_KEY")
+            if not openai_api_key:
+                logger.warning("OpenAI API key not found, falling back to simple timing")
+                return self._fallback_timestamps(audio_path, original_text)
+            
+            client = OpenAI(api_key=openai_api_key)
+            
+            # Open audio file
+            with open(audio_path, "rb") as audio_file:
+                # Call Whisper API with word-level timestamps
+                logger.info("Calling OpenAI Whisper API for word timestamps...")
+                transcription = client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=audio_file,
+                    response_format="verbose_json",
+                    timestamp_granularities=["word"]
+                )
+            
+            # Extract word timestamps
+            word_timestamps = []
+            
+            if hasattr(transcription, 'words') and transcription.words:
+                for word_data in transcription.words:
+                    word_timestamps.append({
+                        'character': word_data.word.strip(),
+                        'start_time_ms': int(word_data.start * 1000),
+                        'end_time_ms': int(word_data.end * 1000)
+                    })
+                
+                logger.info(f"Whisper extracted {len(word_timestamps)} word timestamps")
+            else:
+                logger.warning("Whisper didn't return word timestamps, using fallback")
+                word_timestamps = self._fallback_timestamps(audio_path, original_text)
+            
+            return word_timestamps
+        
+        except Exception as e:
+            logger.error(f"Error getting Whisper timestamps: {str(e)}")
+            # Fallback to simple timing
+            return self._fallback_timestamps(audio_path, original_text)
+    
+    def _fallback_timestamps(self, audio_path: Path, text: str) -> List[Dict]:
+        """
+        Fallback method: simple time division if Whisper fails.
+        """
+        words = text.split()
+        audio_duration = self._get_audio_duration(audio_path)
+        word_duration = audio_duration / len(words) if words else 1.0
+        
+        word_timestamps = []
+        for i, word in enumerate(words):
+            start_time_ms = int(i * word_duration * 1000)
+            end_time_ms = int((i + 1) * word_duration * 1000)
+            word_timestamps.append({
+                'character': word,
+                'start_time_ms': start_time_ms,
+                'end_time_ms': end_time_ms
+            })
+        
+        return word_timestamps
+
             str(audio_path)
         ]
         
