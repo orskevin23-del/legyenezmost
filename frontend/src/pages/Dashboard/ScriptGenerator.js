@@ -50,7 +50,7 @@ export default function ScriptGenerator() {
 
   const generateScript = async () => {
     if (!topic.trim()) {
-      toast.error('Kérlek adj meg egy témát!');
+      toast.error(t('topic_required') || 'Please enter a topic!');
       return;
     }
 
@@ -67,9 +67,9 @@ export default function ScriptGenerator() {
       });
 
       setGeneratedScript(res.data);
-      toast.success('Script sikeresen generálva!');
+      toast.success(t('script_success') || 'Script generated successfully!');
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Script generálás sikertelen');
+      toast.error(error.response?.data?.detail || t('script_failed') || 'Script generation failed');
     } finally {
       setLoading(false);
     }
@@ -77,17 +77,19 @@ export default function ScriptGenerator() {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    toast.success('Vágólapra másolva!');
+    toast.success(t('copied') || 'Copied to clipboard!');
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-4xl font-bold text-white mb-2" >
-          Script Generátor
+        <h1 className="text-4xl font-bold text-white mb-2">
+          {t('script_generator')}
         </h1>
-        <p className="text-zinc-400">AI-powered német faith-niche YouTube Shorts scriptek</p>
+        <p className="text-zinc-400">
+          {t('script_generator_subtitle')}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -96,7 +98,7 @@ export default function ScriptGenerator() {
           <CardHeader>
             <CardTitle className="text-white flex items-center">
               <Sparkles className="mr-2 text-amber-400" size={20} />
-              Beállítások
+              {t('settings')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -104,37 +106,46 @@ export default function ScriptGenerator() {
             <div className="p-4 bg-gradient-to-r from-amber-400/10 to-amber-600/5 border border-amber-400/20 rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <div>
-                  <h4 className="font-semibold text-amber-400 text-sm">ML-Optimalizált Generálás</h4>
+                  <h4 className="font-semibold text-amber-400 text-sm">
+                    {t('ml_optimized_generation') || 'ML-Optimized Generation'}
+                  </h4>
                   <p className="text-xs text-zinc-400 mt-1">
-                    Használd a top performing patterns-t az analytics adatokból
+                    {t('use_top_patterns') || 'Use top performing patterns from analytics data'}
                   </p>
                 </div>
                 <Switch
                   checked={useAnalytics}
                   onCheckedChange={setUseAnalytics}
                   className="data-[state=checked]:bg-amber-400"
+                  disabled={!insights || insights.total_scripts === 0}
                 />
               </div>
               
               {useAnalytics && insights && (
                 <div className="mt-3 pt-3 border-t border-amber-400/20">
-                  <p className="text-xs text-zinc-500 mb-2">Top Performing Patterns:</p>
+                  <p className="text-xs text-zinc-500 mb-2">{t('top_patterns') || 'Top Performing Patterns'}:</p>
                   <div className="space-y-1">
                     {insights.hook_effectiveness?.top_hooks_by_swipe_rate?.slice(0, 2).map((hook, idx) => (
                       <div key={idx} className="text-xs text-amber-400/80">
-                        • "{hook.hook_title.substring(0, 40)}..." ({hook.swipe_rate?.toFixed(1)}% swipe rate)
+                        • "{hook.hook_title.substring(0, 40)}..." ({hook.swipe_rate?.toFixed(1)}% {t('swipe_rate')})
                       </div>
                     ))}
                   </div>
                 </div>
               )}
+              
+              {(!insights || insights.total_scripts === 0) && (
+                <p className="text-xs text-yellow-400 mt-2">
+                  ⚠️ {t('analytics_disabled')}
+                </p>
+              )}
             </div>
 
             {/* Topic Input */}
             <div>
-              <Label className="text-zinc-300">Téma</Label>
+              <Label className="text-zinc-300">{t('topic')}</Label>
               <Input
-                placeholder="pl. Glaube und innere Kraft"
+                placeholder={t('topic_placeholder')}
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 className="bg-zinc-800 border-zinc-700 text-white mt-1"
@@ -143,10 +154,10 @@ export default function ScriptGenerator() {
 
             {/* Keywords */}
             <div>
-              <Label className="text-zinc-300">Kulcsszavak</Label>
+              <Label className="text-zinc-300">{t('keywords')}</Label>
               <div className="flex space-x-2 mt-1">
                 <Input
-                  placeholder="pl. Hoffnung"
+                  placeholder={t('keyword_placeholder') || 'e.g. hope'}
                   value={keywordInput}
                   onChange={(e) => setKeywordInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && addKeyword()}
@@ -175,7 +186,7 @@ export default function ScriptGenerator() {
 
             {/* Mode Selection */}
             <div>
-              <Label className="text-zinc-300">Mód</Label>
+              <Label className="text-zinc-300">{t('mode')}</Label>
               <div className="grid grid-cols-2 gap-2 mt-1">
                 <Button
                   variant={mode === 'FAITH_EXPLICIT' ? 'default' : 'outline'}
@@ -201,11 +212,11 @@ export default function ScriptGenerator() {
               className="w-full bg-amber-400 hover:bg-amber-500 text-zinc-950 font-semibold h-12"
             >
               {loading ? (
-                'Generálás...'
+                <>{t('generating')}</>
               ) : (
                 <>
                   <Sparkles className="mr-2" size={20} />
-                  {useAnalytics ? 'ML-Optimalizált Generálás' : 'Script Generálás'}
+                  {useAnalytics ? (t('ml_generate') || 'ML-Optimized Generation') : t('generate')}
                 </>
               )}
             </Button>
@@ -215,7 +226,7 @@ export default function ScriptGenerator() {
         {/* Output Panel */}
         <Card className="bg-zinc-900 border-zinc-800">
           <CardHeader>
-            <CardTitle className="text-white">Generált Script</CardTitle>
+            <CardTitle className="text-white">{t('generated_script')}</CardTitle>
           </CardHeader>
           <CardContent>
             {generatedScript ? (
@@ -224,14 +235,16 @@ export default function ScriptGenerator() {
                 {generatedScript.ml_optimized && (
                   <div className="flex items-center p-3 bg-amber-400/10 border border-amber-400/20 rounded-lg">
                     <Sparkles className="text-amber-400 mr-2" size={16} />
-                    <span className="text-sm text-amber-400 font-medium">ML-Optimalizált Script</span>
+                    <span className="text-sm text-amber-400 font-medium">
+                      {t('generated_with_analytics')}
+                    </span>
                   </div>
                 )}
 
                 {/* Hook Info */}
                 <div className="p-4 bg-amber-400/5 border border-amber-400/20 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-semibold text-amber-400">Hook</h4>
+                    <h4 className="text-sm font-semibold text-amber-400">{t('hook')}</h4>
                     <Button
                       size="sm"
                       variant="ghost"
@@ -257,7 +270,7 @@ export default function ScriptGenerator() {
                 {/* Full Script */}
                 <div className="p-4 bg-zinc-800 border border-zinc-700 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-semibold text-white">Teljes Script</h4>
+                    <h4 className="text-sm font-semibold text-white">{t('full_script')}</h4>
                     <Button
                       size="sm"
                       variant="ghost"
@@ -274,7 +287,7 @@ export default function ScriptGenerator() {
 
                 {/* Character Count */}
                 <div className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
-                  <span className="text-sm text-zinc-400">Karakterszám</span>
+                  <span className="text-sm text-zinc-400">{t('character_count')}</span>
                   <div className="flex items-center space-x-2">
                     <span className={`font-semibold ${
                       generatedScript.character_count <= 350 ? 'text-green-400' : 'text-red-400'
@@ -292,8 +305,8 @@ export default function ScriptGenerator() {
             ) : (
               <div className="text-center py-12 text-zinc-500">
                 <Sparkles className="mx-auto mb-4 text-zinc-600" size={48} />
-                <p>Még nincs generált script.</p>
-                <p className="text-sm mt-1">Add meg a témát és kattints a Generálás gombra!</p>
+                <p>{t('no_script_yet') || 'No script generated yet.'}</p>
+                <p className="text-sm mt-1">{t('enter_topic_generate') || 'Enter a topic and click Generate!'}</p>
               </div>
             )}
           </CardContent>
