@@ -142,34 +142,32 @@ class FFmpegService:
         duration: float
     ):
         """
-        Create ASS subtitle file with TRUE karaoke effect.
-        Only the CURRENTLY spoken word is YELLOW, all others are WHITE.
+        Create ASS subtitle file with PROPER karaoke effect.
         
-        Fixed issues:
-        - Centered text (Alignment=2 = bottom center)
-        - Soft blur shadow instead of harsh black box
-        - Only ONE word yellow at a time (current word)
-        - All other words white
+        REQUIREMENTS:
+        - Only the CURRENTLY spoken word is YELLOW
+        - All other words (before AND after) are WHITE
+        - NO black boxes - just soft shadow
+        - CENTERED at bottom of screen
         """
-        # ASS header with proper styling:
-        # - BorderStyle=1: Outline + shadow (no opaque box)
-        # - Outline=0: No outline
-        # - Shadow=3: Soft shadow
-        # - BackColour=&H00000000: Fully transparent (no box)
-        # - Alignment=2: Bottom center
-        # - Smaller font (42) for better readability
+        # ASS header - CLEAN styling without boxes
+        # Key settings:
+        # - BorderStyle=1: outline+shadow (NOT opaque box)
+        # - Outline=0: no outline
+        # - Shadow=1.5: subtle shadow
+        # - BackColour=&H00000000: fully transparent (no box)
+        # - OutlineColour=&H80000000: for shadow color (semi-transparent black)
         ass_content = """[Script Info]
 Title: Karaoke Subtitles
 ScriptType: v4.00+
 WrapStyle: 0
 ScaledBorderAndShadow: yes
-YCbCr Matrix: None
 PlayResX: 1080
 PlayResY: 1920
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,Arial,42,&H00FFFFFF,&H00FFFFFF,&H40000000,&H00000000,-1,0,0,0,100,100,0,0,1,2,3,2,40,40,150,1
+Style: Default,Arial,36,&H00FFFFFF,&H00FFFFFF,&H80000000,&H00000000,1,0,0,0,100,100,0,0,1,0,1.5,2,10,10,180,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -185,7 +183,6 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         word_timings = []
         
         if word_timestamps and len(word_timestamps) > 0:
-            # Use provided timestamps
             for i, ts in enumerate(word_timestamps):
                 if isinstance(ts, dict) and 'word' in ts:
                     word_timings.append({
@@ -194,13 +191,16 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         'end': ts.get('end', duration)
                     })
                 elif isinstance(ts, dict) and 'character' in ts:
+                    end_time = ts.get('end_time_ms', duration * 1000) / 1000.0
+                    if 'end_time_ms' not in ts and i < len(word_timestamps) - 1:
+                        end_time = word_timestamps[i+1].get('start_time_ms', duration * 1000) / 1000.0
                     word_timings.append({
                         'word': ts['character'],
                         'start': ts.get('start_time_ms', 0) / 1000.0,
-                        'end': ts.get('end_time_ms', duration * 1000) / 1000.0 if 'end_time_ms' in ts else (word_timestamps[i+1].get('start_time_ms', duration * 1000) / 1000.0 if i < len(word_timestamps) - 1 else duration)
+                        'end': end_time
                     })
         
-        # If no timestamps or parsing failed, distribute evenly
+        # Fallback: distribute evenly
         if not word_timings:
             word_duration = duration / len(words) if words else 1.0
             for i, word in enumerate(words):
@@ -210,48 +210,47 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                     'end': (i + 1) * word_duration
                 })
         
-        # Group words into lines (3-5 words per line for readability)
+        # Group words (4-5 per line)
         groups = []
         current_group = []
         for wt in word_timings:
             current_group.append(wt)
-            # Group size: 3-4 words, or break on long words
-            if len(current_group) >= 4 or (len(current_group) >= 3 and len(wt['word']) > 10):
+            if len(current_group) >= 4:
                 groups.append(current_group)
                 current_group = []
         if current_group:
             groups.append(current_group)
         
-        # Generate dialogue lines for each word highlight within each group
-        # KEY FIX: Only the CURRENT word is YELLOW, all others are WHITE
+        # Generate dialogue - each word gets its own line showing the WHOLE group
+        # with ONLY that word highlighted
         for group in groups:
             for idx, current_word in enumerate(group):
                 word_start = current_word['start']
                 word_end = current_word['end']
                 
-                # Build the text with EXPLICIT color for every word
-                # Current word = YELLOW (&H00FFFF in BGR)
-                # Other words = WHITE (&HFFFFFF)
-                text_parts = []
+                # Build text: current word YELLOW, all others WHITE
+                # Using {\c&HBBGGRR&} format
+                # YELLOW = &H00FFFF (BGR)
+                # WHITE = &HFFFFFF (BGR)
+                parts = []
                 for i, wt in enumerate(group):
                     if i == idx:
-                        # CURRENT word being spoken - YELLOW
-                        text_parts.append(f"{{\\1c&H00FFFF&}}{wt['word']}")
+                        # CURRENT word - YELLOW
+                        parts.append("{\\c&H00FFFF&}" + wt['word'])
                     else:
-                        # All other words - WHITE
-                        text_parts.append(f"{{\\1c&HFFFFFF&}}{wt['word']}")
+                        # Other words - WHITE  
+                        parts.append("{\\c&HFFFFFF&}" + wt['word'])
                 
-                line_text = ' '.join(text_parts)
-                start_time = FFmpegService.format_ass_time(word_start)
-                end_time = FFmpegService.format_ass_time(word_end)
+                line_text = " ".join(parts)
+                start = FFmpegService.format_ass_time(word_start)
+                end = FFmpegService.format_ass_time(word_end)
                 
-                ass_content += f"Dialogue: 0,{start_time},{end_time},Default,,0,0,0,,{line_text}\n"
+                ass_content += f"Dialogue: 0,{start},{end},Default,,0,0,0,,{line_text}\n"
         
-        # Write ASS file
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(ass_content)
         
-        logger.info(f"Created karaoke subtitles with centered text and soft shadow: {output_path}")
+        logger.info(f"Created karaoke subtitles: {output_path}")
     
     @staticmethod
     def format_ass_time(seconds: float) -> str:
