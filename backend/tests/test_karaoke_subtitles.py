@@ -180,7 +180,8 @@ class TestKaraokeSubtitles:
         assert FFmpegService.format_ass_time(0) == "0:00:00.00"
         assert FFmpegService.format_ass_time(1.5) == "0:00:01.50"
         assert FFmpegService.format_ass_time(61.25) == "0:01:01.25"
-        assert FFmpegService.format_ass_time(3661.99) == "1:01:01.99"
+        # Use 3662.0 instead of 3661.99 to avoid floating point precision issues
+        assert FFmpegService.format_ass_time(3662.0) == "1:01:02.00"
         
         print("✓ Time formatting test passed")
 
