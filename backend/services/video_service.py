@@ -269,14 +269,6 @@ class VideoGenerationService:
         
         return word_timestamps
 
-            str(audio_path)
-        ]
-        
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        if result.returncode == 0:
-            data = json.loads(result.stdout)
-            return float(data['format']['duration'])
-        return 30.0  # Default
     
     async def get_audio_duration(self, audio_path: Path) -> float:
         """
