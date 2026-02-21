@@ -91,3 +91,7 @@ videos/aefd7549-f438-4fba-80ab-b28c85a5aca7_broll_1.mp4
 # Environment files
 *.env
 *.env.*
+-e 
+# Environment files
+*.env
+*.env.*
