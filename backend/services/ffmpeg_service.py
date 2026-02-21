@@ -87,7 +87,7 @@ class FFmpegService:
                 'ffmpeg',
                 '-i', str(clip_path),
                 '-t', str(clip_duration),
-                '-vf', f'scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=30',
+                '-vf', 'scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=30',
                 '-c:v', 'libx264',
                 '-preset', 'fast',
                 '-crf', '23',
@@ -216,9 +216,6 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         # Generate dialogue lines for each word highlight within each group
         # This creates the TRUE karaoke effect: only the current word is yellow
         for group in groups:
-            group_start = group[0]['start']
-            group_end = group[-1]['end']
-            
             # For each word in the group, create a dialogue line where ONLY that word is yellow
             for idx, current_word in enumerate(group):
                 word_start = current_word['start']
