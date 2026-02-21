@@ -418,8 +418,8 @@ export default function HookLibrary() {
                 )}
 
                 <div className="flex items-center justify-between text-xs text-zinc-500">
-                  <span>{hook.usage_count || 0}× használva</span>
-                  <span>{new Date(hook.created_at).toLocaleDateString('hu-HU')}</span>
+                  <span>{hook.usage_count || 0}{t('times_used')}</span>
+                  <span>{new Date(hook.created_at).toLocaleDateString(language === 'hu' ? 'hu-HU' : language === 'de' ? 'de-DE' : language === 'pl' ? 'pl-PL' : language === 'nl' ? 'nl-NL' : 'en-US')}</span>
                 </div>
               </CardContent>
             </Card>
@@ -431,13 +431,13 @@ export default function HookLibrary() {
             <Bookmark className="mx-auto mb-4 text-zinc-600" size={64} />
             <h3 className="text-xl font-semibold text-white mb-2">
               {searchQuery || modeFilter !== 'all' || hookTypeFilter !== 'all'
-                ? 'Nincs találat'
-                : 'Még nincs hook'}
+                ? t('no_results')
+                : t('no_hooks_yet')}
             </h3>
             <p className="text-zinc-400 mb-6">
               {searchQuery || modeFilter !== 'all' || hookTypeFilter !== 'all'
-                ? 'Próbálj meg más keresési feltételeket'
-                : 'Generálj scripteket vagy hozz létre manuálisan hookokat'}
+                ? t('try_different_filters')
+                : t('create_first_hook')}
             </p>
           </CardContent>
         </Card>
