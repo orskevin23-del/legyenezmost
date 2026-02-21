@@ -273,14 +273,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         Assemble video with TTS audio, background music, and subtitles.
         Apply volume ducking to music when TTS is playing.
         """
-        # Force style settings:
-        # - FontSize=42: Bigger for better readability
+        # Force style settings for PERFECT CENTER:
+        # - FontSize=50: Good readable size
+        # - Alignment=5: MIDDLE CENTER (both horizontally AND vertically)
         # - Outline=2: Soft outline for visibility
         # - Shadow=3: Blur shadow behind text
-        # - OutlineColour=&H40000000: Semi-transparent black outline
-        # - Alignment=2: Bottom center
-        # - MarginV=80: Distance from bottom
-        force_style = "FontName=Arial,FontSize=42,PrimaryColour=&H00FFFFFF,OutlineColour=&H40000000,BackColour=&H00000000,Bold=1,BorderStyle=1,Outline=2,Shadow=3,Alignment=2,MarginV=80"
+        # Resolution: 1080x1920 (portrait Full HD)
+        force_style = "FontName=Arial,FontSize=50,PrimaryColour=&H00FFFFFF,OutlineColour=&H40000000,BackColour=&H00000000,Bold=1,BorderStyle=1,Outline=2,Shadow=3,Alignment=5,MarginL=20,MarginR=20,MarginV=0"
         
         cmd = [
             'ffmpeg',
@@ -321,14 +320,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         """
         Assemble video with TTS audio and subtitles (no background music).
         """
-        # Force style settings:
-        # - FontSize=42: Bigger for better readability
+        # Force style settings for PERFECT CENTER:
+        # - FontSize=50: Good readable size
+        # - Alignment=5: MIDDLE CENTER (both horizontally AND vertically)
         # - Outline=2: Soft outline for visibility
         # - Shadow=3: Blur shadow behind text
-        # - OutlineColour=&H40000000: Semi-transparent black outline
-        # - Alignment=2: Bottom center
-        # - MarginV=80: Distance from bottom
-        force_style = "FontName=Arial,FontSize=42,PrimaryColour=&H00FFFFFF,OutlineColour=&H40000000,BackColour=&H00000000,Bold=1,BorderStyle=1,Outline=2,Shadow=3,Alignment=2,MarginV=80"
+        # Resolution: 1080x1920 (portrait Full HD)
+        force_style = "FontName=Arial,FontSize=50,PrimaryColour=&H00FFFFFF,OutlineColour=&H40000000,BackColour=&H00000000,Bold=1,BorderStyle=1,Outline=2,Shadow=3,Alignment=5,MarginL=20,MarginR=20,MarginV=0"
         
         cmd = [
             'ffmpeg',
