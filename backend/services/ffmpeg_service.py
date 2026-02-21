@@ -263,8 +263,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 f'[1:a]volume=1.0[voice];'
                 f'[2:a]volume=0.3[music];'
                 f'[voice][music]amix=inputs=2:duration=first:dropout_transition=2[audio];'
-                # Subtitles
-                f'[0:v]subtitles={subtitle_path}:force_style=\'Fontsize=28,PrimaryColour=&H00FFFF00,SecondaryColour=&H00FFFFFF,Outline=3,Shadow=2,MarginV=150\'[video]'
+                # Subtitles (no force_style - use ASS file colors)
+                f'[0:v]subtitles={subtitle_path}[video]'
             ),
             '-map', '[video]',
             '-map', '[audio]',
@@ -298,7 +298,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             '-i', str(video_path),
             '-i', str(audio_path),
             '-filter_complex',
-            f'[0:v]subtitles={subtitle_path}:force_style=\'Fontsize=28,PrimaryColour=&H00FFFF00,SecondaryColour=&H00FFFFFF,Outline=3,Shadow=2,MarginV=150\'[video]',
+            # Subtitles (no force_style - use ASS file)
+            f'[0:v]subtitles={subtitle_path}[video]',
             '-map', '[video]',
             '-map', '1:a',
             '-c:v', 'libx264',
