@@ -152,11 +152,9 @@ class FFmpegService:
         """
         # ASS header - CLEAN styling without boxes
         # Key settings:
-        # - BorderStyle=1: outline+shadow (NOT opaque box)
-        # - Outline=0: no outline
-        # - Shadow=1.5: subtle shadow
-        # - BackColour=&H00000000: fully transparent (no box)
-        # - OutlineColour=&H80000000: for shadow color (semi-transparent black)
+        # - Alignment=5: MIDDLE CENTER (perfect center like Canva)
+        # - PlayResX/Y: 1080x1920 (portrait Full HD)
+        # - FontSize=50
         ass_content = """[Script Info]
 Title: Karaoke Subtitles
 ScriptType: v4.00+
@@ -167,7 +165,7 @@ PlayResY: 1920
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,Arial,36,&H00FFFFFF,&H00FFFFFF,&H80000000,&H00000000,1,0,0,0,100,100,0,0,1,0,1.5,2,10,10,180,1
+Style: Default,Arial,50,&H00FFFFFF,&H00FFFFFF,&H40000000,&H00000000,1,0,0,0,100,100,0,0,1,2,3,5,20,20,0,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
