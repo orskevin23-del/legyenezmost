@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
+import { Textarea } from '../../components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import {
@@ -25,7 +26,10 @@ import {
   Loader2,
   Music,
   Image as ImageIcon,
-  Mic
+  Mic,
+  Edit,
+  Save,
+  X
 } from 'lucide-react';
 
 export default function VideoFactory() {
@@ -35,6 +39,10 @@ export default function VideoFactory() {
   const [selectedScript, setSelectedScript] = useState('');
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+
+  // Script Editing State
+  const [isEditingScript, setIsEditingScript] = useState(false);
+  const [editedScriptText, setEditedScriptText] = useState('');
 
   // Voice Settings
   const [voiceOption, setVoiceOption] = useState('default'); // 'default' or 'custom'
@@ -64,6 +72,7 @@ export default function VideoFactory() {
 
   useEffect(() => {
     fetchData();
+    loadVoicePreferences();
     const interval = setInterval(fetchVideos, 10000); // Poll every 10s
     return () => clearInterval(interval);
   }, []);
@@ -96,6 +105,40 @@ export default function VideoFactory() {
     }
   };
 
+  // Load saved voice preferences
+  const loadVoicePreferences = async () => {
+    try {
+      const response = await api.get('/voice-preferences');
+      if (response.data) {
+        const pref = response.data;
+        setCustomVoiceId(pref.voice_id);
+        setVoiceId(pref.voice_id);
+        setVoiceSettings(pref.voice_settings);
+        setVoiceOption('custom'); // Auto-select custom if we have saved preferences
+        toast.success('Betöltöttem a mentett hang beállításokat!');
+      }
+    } catch (error) {
+      console.log('No saved voice preferences found');
+    }
+  };
+
+  // Save voice preferences
+  const saveVoicePreferences = async () => {
+    try {
+      const finalVoiceId = voiceOption === 'custom' ? customVoiceId : voiceId;
+      
+      await api.post('/voice-preferences', {
+        voice_id: finalVoiceId,
+        voice_settings: voiceSettings,
+        is_default: true
+      });
+
+      toast.success('Hang beállítások elmentve! Legközelebb automatikusan betöltődnek.');
+    } catch (error) {
+      toast.error('Hiba a mentés során: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
   const handleDownload = async (videoId) => {
     try {
       toast.info('Letöltés indul...');
@@ -119,6 +162,42 @@ export default function VideoFactory() {
     } catch (error) {
       console.error('Download failed:', error);
       toast.error('Letöltés sikertelen: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
+  // Start editing script
+  const startEditingScript = () => {
+    const scriptData = scripts.find(s => s.id === selectedScript);
+    if (scriptData) {
+      setEditedScriptText(scriptData.script);
+      setIsEditingScript(true);
+    }
+  };
+
+  // Cancel editing
+  const cancelEditingScript = () => {
+    setIsEditingScript(false);
+    setEditedScriptText('');
+  };
+
+  // Save edited script
+  const saveEditedScript = async () => {
+    try {
+      await api.put(`/scripts/${selectedScript}`, {
+        script: editedScriptText
+      });
+
+      // Update local state
+      setScripts(scripts.map(s => 
+        s.id === selectedScript 
+          ? { ...s, script: editedScriptText, character_count: editedScriptText.length }
+          : s
+      ));
+
+      setIsEditingScript(false);
+      toast.success('Script sikeresen frissítve!');
+    } catch (error) {
+      toast.error('Hiba a mentés során: ' + (error.response?.data?.detail || error.message));
     }
   };
 
@@ -225,15 +304,28 @@ export default function VideoFactory() {
           {/* Script Selection */}
           <Card className="bg-zinc-900/50 border-zinc-800">
             <CardHeader>
-              <CardTitle className="text-white flex items-center">
-                <Film className="mr-2 text-amber-400" size={20} />
-                Script Kiválasztása
+              <CardTitle className="text-white flex items-center justify-between">
+                <div className="flex items-center">
+                  <Film className="mr-2 text-amber-400" size={20} />
+                  Script Kiválasztása
+                </div>
+                {selectedScriptData && !isEditingScript && (
+                  <Button
+                    onClick={startEditingScript}
+                    variant="ghost"
+                    size="sm"
+                    className="text-amber-400 hover:text-amber-300"
+                  >
+                    <Edit size={16} className="mr-1" />
+                    Szerkesztés
+                  </Button>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <Label className="text-zinc-300">Válassz scriptet</Label>
-                <Select value={selectedScript} onValueChange={setSelectedScript}>
+                <Select value={selectedScript} onValueChange={setSelectedScript} disabled={isEditingScript}>
                   <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white mt-1">
                     <SelectValue placeholder="Válassz egy scriptet..." />
                   </SelectTrigger>
@@ -247,7 +339,7 @@ export default function VideoFactory() {
                 </Select>
               </div>
 
-              {selectedScriptData && (
+              {selectedScriptData && !isEditingScript && (
                 <div className="p-4 bg-zinc-800/50 rounded-lg border border-zinc-700">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-semibold text-white">{selectedScriptData.topic}</h4>
@@ -255,9 +347,44 @@ export default function VideoFactory() {
                       {selectedScriptData.character_count} karakter
                     </Badge>
                   </div>
-                  <p className="text-sm text-zinc-400 font-mono leading-relaxed">
+                  <p className="text-sm text-zinc-400 font-mono leading-relaxed whitespace-pre-wrap">
                     {selectedScriptData.script}
                   </p>
+                </div>
+              )}
+
+              {/* Script Editor */}
+              {isEditingScript && (
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-zinc-300 mb-2">Script szövege</Label>
+                    <Textarea
+                      value={editedScriptText}
+                      onChange={(e) => setEditedScriptText(e.target.value)}
+                      className="bg-zinc-800 border-zinc-700 text-white min-h-[200px] font-mono"
+                      placeholder="Írd be a script szövegét..."
+                    />
+                    <p className="text-sm text-zinc-500 mt-1">
+                      Karakterek: {editedScriptText.length}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={saveEditedScript}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Save size={16} className="mr-1" />
+                      Mentés
+                    </Button>
+                    <Button
+                      onClick={cancelEditingScript}
+                      variant="outline"
+                      className="border-zinc-700"
+                    >
+                      <X size={16} className="mr-1" />
+                      Mégse
+                    </Button>
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -266,9 +393,20 @@ export default function VideoFactory() {
           {/* Voice Settings */}
           <Card className="bg-zinc-900/50 border-zinc-800">
             <CardHeader>
-              <CardTitle className="text-white flex items-center">
-                <Mic className="mr-2 text-blue-400" size={20} />
-                Hang Beállítások (ElevenLabs)
+              <CardTitle className="text-white flex items-center justify-between">
+                <div className="flex items-center">
+                  <Mic className="mr-2 text-blue-400" size={20} />
+                  Hang Beállítások (ElevenLabs)
+                </div>
+                <Button
+                  onClick={saveVoicePreferences}
+                  variant="ghost"
+                  size="sm"
+                  className="text-blue-400 hover:text-blue-300"
+                >
+                  <Save size={16} className="mr-1" />
+                  Beállítások Mentése
+                </Button>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -321,130 +459,99 @@ export default function VideoFactory() {
               {/* Custom Voice ID Input */}
               {voiceOption === 'custom' && (
                 <div>
-                  <Label className="text-zinc-300">Custom Voice ID</Label>
+                  <Label className="text-zinc-300">Saját Voice ID (ElevenLabs)</Label>
                   <Input
-                    placeholder="pl. CBPNfSFlxFnoBab9ZbDZ"
+                    type="text"
                     value={customVoiceId}
                     onChange={(e) => setCustomVoiceId(e.target.value)}
+                    placeholder="Pl: BsX9EcVskRzn0UFZ9dmh"
                     className="bg-zinc-800 border-zinc-700 text-white mt-1"
                   />
                   <p className="text-xs text-zinc-500 mt-1">
-                    Add meg a saját ElevenLabs Voice ID-det
+                    Találd meg a Voice ID-t az ElevenLabs dashboard-on
                   </p>
                 </div>
               )}
 
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Label className="text-zinc-300">Stability</Label>
-                  <span className="text-sm text-amber-400">{voiceSettings.stability.toFixed(2)}</span>
+              {/* Voice Settings Sliders */}
+              <div className="space-y-4 pt-2">
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <Label className="text-zinc-300">Stability</Label>
+                    <span className="text-zinc-400 text-sm">{voiceSettings.stability.toFixed(2)}</span>
+                  </div>
+                  <Slider
+                    value={[voiceSettings.stability]}
+                    onValueChange={([value]) => setVoiceSettings({...voiceSettings, stability: value})}
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    className="w-full"
+                  />
                 </div>
-                <Slider
-                  value={[voiceSettings.stability]}
-                  onValueChange={([val]) => setVoiceSettings({ ...voiceSettings, stability: val })}
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  className="w-full"
-                />
-              </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Label className="text-zinc-300">Similarity Boost</Label>
-                  <span className="text-sm text-amber-400">{voiceSettings.similarity_boost.toFixed(2)}</span>
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <Label className="text-zinc-300">Similarity Boost</Label>
+                    <span className="text-zinc-400 text-sm">{voiceSettings.similarity_boost.toFixed(2)}</span>
+                  </div>
+                  <Slider
+                    value={[voiceSettings.similarity_boost]}
+                    onValueChange={([value]) => setVoiceSettings({...voiceSettings, similarity_boost: value})}
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    className="w-full"
+                  />
                 </div>
-                <Slider
-                  value={[voiceSettings.similarity_boost]}
-                  onValueChange={([val]) => setVoiceSettings({ ...voiceSettings, similarity_boost: val })}
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  className="w-full"
-                />
-              </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Label className="text-zinc-300">Style</Label>
-                  <span className="text-sm text-amber-400">{voiceSettings.style.toFixed(2)}</span>
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <Label className="text-zinc-300">Style</Label>
+                    <span className="text-zinc-400 text-sm">{voiceSettings.style.toFixed(2)}</span>
+                  </div>
+                  <Slider
+                    value={[voiceSettings.style]}
+                    onValueChange={([value]) => setVoiceSettings({...voiceSettings, style: value})}
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    className="w-full"
+                  />
                 </div>
-                <Slider
-                  value={[voiceSettings.style]}
-                  onValueChange={([val]) => setVoiceSettings({ ...voiceSettings, style: val })}
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  className="w-full"
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Label className="text-zinc-300">Speed (Sebesség)</Label>
-                  <span className="text-sm text-amber-400">{voiceSettings.speed.toFixed(2)}x</span>
-                </div>
-                <Slider
-                  value={[voiceSettings.speed]}
-                  onValueChange={([val]) => setVoiceSettings({ ...voiceSettings, speed: val })}
-                  min={0.25}
-                  max={4.0}
-                  step={0.1}
-                  className="w-full"
-                />
-                <p className="text-xs text-zinc-500 mt-1">
-                  Hang sebessége (0.25x = lassú, 4.0x = gyors)
-                </p>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="speaker-boost"
-                  checked={voiceSettings.use_speaker_boost}
-                  onChange={(e) => setVoiceSettings({ ...voiceSettings, use_speaker_boost: e.target.checked })}
-                  className="rounded"
-                />
-                <Label htmlFor="speaker-boost" className="text-zinc-300 cursor-pointer">
-                  Speaker Boost (ajánlott)
-                </Label>
               </div>
             </CardContent>
           </Card>
 
-          {/* Video Settings */}
+          {/* B-roll & Music Settings */}
           <Card className="bg-zinc-900/50 border-zinc-800">
             <CardHeader>
               <CardTitle className="text-white flex items-center">
-                <ImageIcon className="mr-2 text-green-400" size={20} />
-                Videó Beállítások
+                <ImageIcon className="mr-2 text-purple-400" size={20} />
+                B-roll és Zene
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label className="text-zinc-300">B-roll Keresés (Pexels)</Label>
+                <Label className="text-zinc-300">B-roll Keresési Kulcsszó</Label>
                 <Input
-                  placeholder="pl. faith, spirituality, peaceful (üres = auto topic)"
+                  type="text"
                   value={brollSearch}
                   onChange={(e) => setBrollSearch(e.target.value)}
+                  placeholder="Pl: faith prayer spiritual (opcionális)"
                   className="bg-zinc-800 border-zinc-700 text-white mt-1"
                 />
-                <p className="text-xs text-zinc-500 mt-1">
-                  Ha üresen hagyod, a script topic-ját használja
-                </p>
               </div>
 
               <div>
                 <Label className="text-zinc-300">Háttérzene URL (opcionális)</Label>
                 <Input
-                  placeholder="https://example.com/music.mp3"
+                  type="text"
                   value={backgroundMusic}
                   onChange={(e) => setBackgroundMusic(e.target.value)}
+                  placeholder="https://example.com/music.mp3"
                   className="bg-zinc-800 border-zinc-700 text-white mt-1"
                 />
-                <p className="text-xs text-zinc-500 mt-1">
-                  Stock music vagy saját URL (MP3)
-                </p>
               </div>
             </CardContent>
           </Card>
@@ -452,8 +559,8 @@ export default function VideoFactory() {
           {/* Generate Button */}
           <Button
             onClick={handleGenerateVideo}
-            disabled={!selectedScript || generating}
-            className="w-full bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-500 hover:to-amber-700 text-zinc-950 font-semibold h-14 text-lg"
+            disabled={generating || !selectedScript || isEditingScript}
+            className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold py-6 text-lg"
           >
             {generating ? (
               <>
@@ -462,130 +569,69 @@ export default function VideoFactory() {
               </>
             ) : (
               <>
-                <Wand2 className="mr-2" size={20} />
+                <Play className="mr-2" size={20} />
                 Videó Generálás Indítása
               </>
             )}
           </Button>
         </div>
 
-        {/* Info Panel */}
-        <div className="space-y-6">
-          <Card className="bg-gradient-to-br from-blue-400/10 to-blue-600/5 border-blue-400/20">
+        {/* Generated Videos List */}
+        <div className="space-y-4">
+          <Card className="bg-zinc-900/50 border-zinc-800 sticky top-6">
             <CardHeader>
-              <CardTitle className="text-blue-400 text-lg">
-                Videó Pipeline
-              </CardTitle>
+              <CardTitle className="text-white">Generált Videók</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex items-start space-x-3">
-                <span className="flex items-center justify-center w-6 h-6 bg-blue-400/10 text-blue-400 rounded-full font-semibold text-xs shrink-0">1</span>
-                <div>
-                  <p className="text-white font-medium">TTS Generálás</p>
-                  <p className="text-zinc-400 text-xs">ElevenLabs custom voice + word timestamps</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <span className="flex items-center justify-center w-6 h-6 bg-blue-400/10 text-blue-400 rounded-full font-semibold text-xs shrink-0">2</span>
-                <div>
-                  <p className="text-white font-medium">B-roll Letöltés</p>
-                  <p className="text-zinc-400 text-xs">Pexels 9:16 vertical videók (2-3mp clips)</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <span className="flex items-center justify-center w-6 h-6 bg-blue-400/10 text-blue-400 rounded-full font-semibold text-xs shrink-0">3</span>
-                <div>
-                  <p className="text-white font-medium">FFmpeg Assembly</p>
-                  <p className="text-zinc-400 text-xs">Karaoke feliratok + audio mixing</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <span className="flex items-center justify-center w-6 h-6 bg-blue-400/10 text-blue-400 rounded-full font-semibold text-xs shrink-0">4</span>
-                <div>
-                  <p className="text-white font-medium">MP4 Export</p>
-                  <p className="text-zinc-400 text-xs">9:16 formátum, 25-35mp, H.264</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            <CardContent className="space-y-3 max-h-[800px] overflow-y-auto">
+              {videos.length === 0 ? (
+                <p className="text-zinc-500 text-center py-4">
+                  Még nincs videó generálva
+                </p>
+              ) : (
+                videos.map(video => (
+                  <div
+                    key={video.id}
+                    className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-700 space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      {getStatusIcon(video.status)}
+                      {getStatusBadge(video.status)}
+                    </div>
+                    
+                    <div className="text-sm">
+                      <p className="text-zinc-400 truncate">
+                        ID: {video.id.slice(0, 8)}...
+                      </p>
+                      {video.duration && (
+                        <p className="text-zinc-500 text-xs">
+                          {video.duration.toFixed(1)}s
+                        </p>
+                      )}
+                    </div>
 
-          <Card className="bg-zinc-900/50 border-zinc-800">
-            <CardHeader>
-              <CardTitle className="text-white text-lg">
-                Karaoke Feliratok
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm text-zinc-400">
-              <p className="mb-2">A feliratok automatikusan generálódnak:</p>
-              <ul className="space-y-1 text-xs">
-                <li>• Fehér alap szín</li>
-                <li>• Citromsárga highlight az aktív szónál</li>
-                <li>• Safe zones (YouTube UI elkerülése)</li>
-                <li>• Word-level timing (ElevenLabs timestamps)</li>
-              </ul>
+                    {video.status === 'completed' && (
+                      <Button
+                        onClick={() => handleDownload(video.id)}
+                        size="sm"
+                        className="w-full bg-green-600 hover:bg-green-700"
+                      >
+                        <Download size={16} className="mr-1" />
+                        Letöltés
+                      </Button>
+                    )}
+
+                    {video.status === 'failed' && video.error && (
+                      <p className="text-xs text-red-400 break-words">
+                        {video.error}
+                      </p>
+                    )}
+                  </div>
+                ))
+              )}
             </CardContent>
           </Card>
         </div>
       </div>
-
-      {/* Video Queue/History */}
-      <Card className="bg-zinc-900/50 border-zinc-800">
-        <CardHeader>
-          <CardTitle className="text-white">
-            Generált Videók ({videos.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {videos.length > 0 ? (
-            <div className="space-y-3">
-              {videos.map((video) => (
-                <div
-                  key={video.id}
-                  className="p-4 bg-zinc-800/50 rounded-lg border border-zinc-700 flex items-center justify-between"
-                >
-                  <div className="flex items-center space-x-4 flex-1">
-                    {getStatusIcon(video.status)}
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <p className="font-medium text-white">Video #{video.id.slice(0, 8)}</p>
-                        {getStatusBadge(video.status)}
-                      </div>
-                      <div className="flex items-center space-x-4 text-xs text-zinc-500">
-                        <span>{new Date(video.created_at).toLocaleString('hu-HU')}</span>
-                        {video.duration && <span>{video.duration.toFixed(1)}s</span>}
-                      </div>
-                      {video.error && (
-                        <p className="text-xs text-red-400 mt-1">Hiba: {video.error}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {video.status === 'completed' && video.video_url && (
-                    <Button
-                      size="sm"
-                      className="bg-green-500 hover:bg-green-600 text-white"
-                      onClick={() => handleDownload(video.id)}
-                    >
-                      <Download size={14} className="mr-1" />
-                      Letöltés
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <Film className="mx-auto mb-4 text-zinc-600" size={64} />
-              <h3 className="text-xl font-semibold text-white mb-2">
-                Még nincs generált videó
-              </h3>
-              <p className="text-zinc-400">
-                Válassz egy scriptet és indítsd el a videó generálást!
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }
