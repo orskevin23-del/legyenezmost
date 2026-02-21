@@ -191,6 +191,15 @@ class VideoGenerationService:
             '-v', 'quiet',
             '-print_format', 'json',
             '-show_format',
+            str(audio_path)
+        ]
+        
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode == 0:
+            data = json.loads(result.stdout)
+            return float(data['format']['duration'])
+        return 30.0  # Default
+
     
     async def _get_whisper_timestamps(self, audio_path: Path, original_text: str) -> List[Dict]:
         """
