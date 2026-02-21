@@ -1,53 +1,74 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'sonner';
+import { AuthProvider } from './contexts/AuthContext';
+import { LanguageProvider } from './contexts/LanguageContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import LanguageSwitcher from './components/LanguageSwitcher';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+// Layouts
+import DashboardLayout from './layouts/DashboardLayout';
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
+// Auth Pages
+import Login from './pages/Auth/Login';
+import Register from './pages/Auth/Register';
+import ForgotPassword from './pages/Auth/ForgotPassword';
+import ResetPassword from './pages/Auth/ResetPassword';
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+// Dashboard Pages
+import DashboardOverview from './pages/Dashboard/Overview';
+import ScriptGenerator from './pages/Dashboard/ScriptGenerator';
+import NotionAnalytics from './pages/Dashboard/NotionAnalytics';
+import HookLibrary from './pages/Dashboard/HookLibrary';
+import VideoFactory from './pages/Dashboard/VideoFactory';
+import Analytics from './pages/Dashboard/Analytics';
+import Settings from './pages/Dashboard/Settings';
 
-  return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
+import './App.css';
 
 function App() {
   return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </div>
+    <AuthProvider>
+      <LanguageProvider>
+        <BrowserRouter>
+          <LanguageSwitcher />
+          <Routes>
+            {/* Auth Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+
+            {/* Dashboard Routes */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<DashboardOverview />} />
+              <Route path="scripts" element={<ScriptGenerator />} />
+              <Route path="hooks" element={<HookLibrary />} />
+              <Route path="videos" element={<VideoFactory />} />
+              <Route path="analytics" element={<Analytics />} />
+              <Route path="notion-analytics" element={<NotionAnalytics />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
+
+            {/* Redirect root to dashboard or login */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+          
+          <Toaster 
+            position="top-right"
+            theme="dark"
+            richColors
+          />
+        </BrowserRouter>
+      </LanguageProvider>
+    </AuthProvider>
   );
 }
 
