@@ -288,7 +288,7 @@ export default function HookLibrary() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
                 <Input
-                  placeholder="Hook szöveg vagy tag keresése..."
+                  placeholder={t('search_hooks')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="bg-zinc-800 border-zinc-700 text-white pl-10"
@@ -300,10 +300,10 @@ export default function HookLibrary() {
             <div>
               <Select value={modeFilter} onValueChange={setModeFilter}>
                 <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
-                  <SelectValue placeholder="Mód" />
+                  <SelectValue placeholder={t('mode')} />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-800 border-zinc-700">
-                  <SelectItem value="all">Összes Mód</SelectItem>
+                  <SelectItem value="all">{t('all_modes')}</SelectItem>
                   <SelectItem value="FAITH_EXPLICIT">Faith Explicit</SelectItem>
                   <SelectItem value="STATE_BASED">State Based</SelectItem>
                 </SelectContent>
@@ -314,10 +314,10 @@ export default function HookLibrary() {
             <div>
               <Select value={hookTypeFilter} onValueChange={setHookTypeFilter}>
                 <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
-                  <SelectValue placeholder="Hook Típus" />
+                  <SelectValue placeholder={t('hook_type')} />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-800 border-zinc-700">
-                  <SelectItem value="all">Összes Típus</SelectItem>
+                  <SelectItem value="all">{t('all_types')}</SelectItem>
                   {hookTypes.map(type => (
                     <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
                   ))}
@@ -329,12 +329,12 @@ export default function HookLibrary() {
           {/* Sort */}
           <div className="flex items-center space-x-2 mt-4">
             <Filter size={16} className="text-zinc-500" />
-            <span className="text-sm text-zinc-400">Rendezés:</span>
+            <span className="text-sm text-zinc-400">{t('sort_by')}:</span>
             <div className="flex space-x-2">
               {[
-                { value: 'created_at', label: 'Dátum', icon: Calendar },
-                { value: 'avg_retention', label: 'Retention %', icon: TrendingUp },
-                { value: 'usage_count', label: 'Használat', icon: Hash }
+                { value: 'created_at', label: t('sort_date'), icon: Calendar },
+                { value: 'avg_retention', label: t('sort_retention'), icon: TrendingUp },
+                { value: 'usage_count', label: t('sort_usage'), icon: Hash }
               ].map(sort => (
                 <Button
                   key={sort.value}
