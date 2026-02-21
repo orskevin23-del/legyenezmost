@@ -155,7 +155,7 @@ YCbCr Matrix: None
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,Arial Black,14,&H00FFFFFF,&H0000FFFF,&H00000000,&H64000000,-1,0,0,0,100,100,0,0,1,1.5,0,2,10,10,80,1
+Style: Default,Arial Black,14,&H0000FFFF,&H00FFFFFF,&H00000000,&HAA000000,-1,0,0,0,100,100,0,0,3,2,3,5,10,10,80,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -263,8 +263,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 f'[1:a]volume=1.0[voice];'
                 f'[2:a]volume=0.3[music];'
                 f'[voice][music]amix=inputs=2:duration=first:dropout_transition=2[audio];'
-                # Subtitles - soft shadow, lower position
-                f'[0:v]subtitles={subtitle_path}:force_style=\'FontName=Arial Black,Fontsize=14,PrimaryColour=&H00FFFFFF,SecondaryColour=&H0000FFFF,Alignment=2,MarginV=80,Outline=1.5,Shadow=0,BackColour=&H64000000\'[video]'
+                # Subtitles - CORRECT karaoke colors + blur shadow + center
+                f'[0:v]subtitles={subtitle_path}:force_style=\'FontName=Arial Black,Fontsize=14,PrimaryColour=&H0000FFFF,SecondaryColour=&H00FFFFFF,Alignment=5,MarginV=80,BorderStyle=3,Outline=2,Shadow=3,BackColour=&HAA000000\'[video]'
             ),
             '-map', '[video]',
             '-map', '[audio]',
@@ -298,8 +298,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             '-i', str(video_path),
             '-i', str(audio_path),
             '-filter_complex',
-            # Subtitles - soft shadow
-            f'[0:v]subtitles={subtitle_path}:force_style=\'FontName=Arial Black,Fontsize=14,PrimaryColour=&H00FFFFFF,SecondaryColour=&H0000FFFF,Alignment=2,MarginV=80,Outline=1.5,Shadow=0,BackColour=&H64000000\'[video]',
+            # Subtitles - correct karaoke + blur shadow
+            f'[0:v]subtitles={subtitle_path}:force_style=\'FontName=Arial Black,Fontsize=14,PrimaryColour=&H0000FFFF,SecondaryColour=&H00FFFFFF,Alignment=5,MarginV=80,BorderStyle=3,Outline=2,Shadow=3,BackColour=&HAA000000\'[video]',
             '-map', '[video]',
             '-map', '1:a',
             '-c:v', 'libx264',
