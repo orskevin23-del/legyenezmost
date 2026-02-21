@@ -79,7 +79,7 @@ export default function HookLibrary() {
       setHooks(response.data);
     } catch (error) {
       console.error('Failed to fetch hooks:', error);
-      toast.error('Hook library betöltése sikertelen');
+      toast.error(t('hook_load_failed'));
     } finally {
       setLoading(false);
     }
