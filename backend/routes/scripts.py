@@ -254,6 +254,48 @@ async def get_script(script_id: str, current_user = Depends(get_current_user)):
     
     return script
 
+
+@router.put("/{script_id}")
+async def update_script(
+    script_id: str, 
+    script_update: dict,
+    current_user = Depends(get_current_user)
+):
+    """
+    Update script text.
+    """
+    # Validate script exists and belongs to user
+    existing_script = await db.scripts.find_one({
+        "id": script_id,
+        "user_id": current_user["id"]
+    })
+    
+    if not existing_script:
+        raise HTTPException(status_code=404, detail="Script not found")
+    
+    # Update script text and character count
+    new_script_text = script_update.get("script", existing_script["script"])
+    character_count = count_characters(new_script_text)
+    
+    await db.scripts.update_one(
+        {"id": script_id, "user_id": current_user["id"]},
+        {
+            "$set": {
+                "script": new_script_text,
+                "character_count": character_count
+            }
+        }
+    )
+    
+    logger.info(f"Updated script {script_id} for user {current_user['id']}")
+    
+    return {
+        "id": script_id,
+        "script": new_script_text,
+        "character_count": character_count,
+        "message": "Script updated successfully"
+    }
+
 @router.delete("/{script_id}")
 async def delete_script(script_id: str, current_user = Depends(get_current_user)):
     """
