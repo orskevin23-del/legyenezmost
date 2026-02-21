@@ -139,4 +139,24 @@ class SavedVoiceCreate(BaseModel):
     language: Optional[str] = "Multilingual"
     is_favorite: bool = False
 
-    completed_at: Optional[datetime] = None
+# ===== VOICE PREFERENCES MODELS =====
+class VoicePreferences(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    voice_id: str
+    voice_settings: dict = Field(default_factory=lambda: {
+        "stability": 0.7,
+        "similarity_boost": 0.75,
+        "style": 0.5,
+        "speed": 1.0,
+        "use_speaker_boost": True
+    })
+    is_default: bool = True  # Auto-load on startup
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class VoicePreferencesCreate(BaseModel):
+    voice_id: str
+    voice_settings: dict
+    is_default: bool = True
