@@ -63,41 +63,41 @@ export default function DashboardOverview() {
         </p>
       </div>
 
-      {/* Stats Cards - 4 Column Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stats Cards - Responsive Grid: Mobile 2 cols, Tablet 2 cols, Desktop 4 cols */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card className="bg-zinc-900/50 border-zinc-800 backdrop-blur">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-zinc-500 mb-1">{t('total_scripts')}</p>
-                <p className="text-4xl font-bold text-white">{stats.total_scripts}</p>
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+              <div className="w-full">
+                <p className="text-xs sm:text-sm text-zinc-500 mb-1">{t('total_scripts')}</p>
+                <p className="text-2xl sm:text-4xl font-bold text-white">{stats.total_scripts}</p>
               </div>
-              <div className="p-3 bg-amber-400/10 rounded-xl">
-                <FileText className="text-amber-400" size={24} />
+              <div className="p-2 sm:p-3 bg-amber-400/10 rounded-xl">
+                <FileText className="text-amber-400" size={20} />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-zinc-900/50 border-zinc-800 backdrop-blur">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-zinc-500 mb-1">{t('total_hooks')}</p>
-                <p className="text-4xl font-bold text-white">{stats.total_hooks}</p>
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+              <div className="w-full">
+                <p className="text-xs sm:text-sm text-zinc-500 mb-1">{t('total_hooks')}</p>
+                <p className="text-2xl sm:text-4xl font-bold text-white">{stats.total_hooks}</p>
               </div>
-              <div className="p-3 bg-blue-400/10 rounded-xl">
-                <Bookmark className="text-blue-400" size={24} />
+              <div className="p-2 sm:p-3 bg-blue-400/10 rounded-xl">
+                <Bookmark className="text-blue-400" size={20} />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-zinc-900/50 border-zinc-800 backdrop-blur">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-zinc-500 mb-1">{t('avg_retention')}</p>
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+              <div className="w-full">
+                <p className="text-xs sm:text-sm text-zinc-500 mb-1">{t('avg_retention')}</p>
                 <p className="text-4xl font-bold text-white">{stats.avg_retention.toFixed(1)}%</p>
               </div>
               <div className="p-3 bg-green-400/10 rounded-xl">
