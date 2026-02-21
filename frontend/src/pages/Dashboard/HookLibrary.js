@@ -111,13 +111,13 @@ export default function HookLibrary() {
 
   const handleCreateHook = async () => {
     if (!newHook.hook_text.trim()) {
-      toast.error('Hook szöveg megadása kötelező!');
+      toast.error(t('hook_text_required'));
       return;
     }
 
     try {
       await api.post('/hooks', newHook);
-      toast.success('Hook létrehozva!');
+      toast.success(t('hook_created'));
       setShowCreateDialog(false);
       setNewHook({
         hook_text: '',
@@ -128,25 +128,25 @@ export default function HookLibrary() {
       });
       fetchHooks();
     } catch (error) {
-      toast.error('Hook létrehozása sikertelen');
+      toast.error(t('hook_create_failed'));
     }
   };
 
   const handleDeleteHook = async (id) => {
-    if (!window.confirm('Biztosan törlöd ezt a hookot?')) return;
+    if (!window.confirm(t('confirm_delete_hook'))) return;
 
     try {
       await api.delete(`/hooks/${id}`);
-      toast.success('Hook törölve');
+      toast.success(t('hook_deleted'));
       fetchHooks();
     } catch (error) {
-      toast.error('Törlés sikertelen');
+      toast.error(t('hook_delete_failed'));
     }
   };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    toast.success('Vágólapra másolva!');
+    toast.success(t('copied'));
   };
 
   const addTag = () => {
