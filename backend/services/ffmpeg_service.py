@@ -317,13 +317,17 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         """
         Assemble video with TTS audio and subtitles (no background music).
         """
-        # Use subtitles filter without force_style - ASS file has all styling
+        # Use subtitles filter with force_style to ensure proper styling
+        # BorderStyle=1 (outline+shadow, NO box), Outline=0, Shadow=1
+        # Alignment=2 (bottom center)
+        force_style = "FontName=Arial,FontSize=36,PrimaryColour=&H00FFFFFF,OutlineColour=&H80000000,BackColour=&H00000000,Bold=1,BorderStyle=1,Outline=0,Shadow=1,Alignment=2,MarginV=60"
+        
         cmd = [
             'ffmpeg',
             '-i', str(video_path),
             '-i', str(audio_path),
             '-filter_complex',
-            f'[0:v]subtitles={subtitle_path}[video]',
+            f"[0:v]subtitles={subtitle_path}:force_style='{force_style}'[video]",
             '-map', '[video]',
             '-map', '1:a',
             '-c:v', 'libx264',
