@@ -142,94 +142,111 @@ class FFmpegService:
         duration: float
     ):
         """
-        Create ASS subtitle file with karaoke effect.
-        Multiple words per line (3-5 words), proper sizing and yellow highlight.
+        Create ASS subtitle file with TRUE karaoke effect.
+        Only the CURRENTLY spoken word is YELLOW, all others are WHITE.
+        Uses individual dialogue lines per word group, with inline color overrides.
         """
-        # ASS header with smaller font and proper colors
+        # ASS header - base style is WHITE text
+        # PrimaryColour = WHITE (default text color)
+        # Using soft shadow (BorderStyle=1 with Shadow), centered at bottom
         ass_content = """[Script Info]
 Title: Karaoke Subtitles
 ScriptType: v4.00+
 WrapStyle: 0
 ScaledBorderAndShadow: yes
 YCbCr Matrix: None
+PlayResX: 1080
+PlayResY: 1920
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,Arial Black,14,&H0000FFFF,&H00FFFFFF,&H00000000,&HAA000000,-1,0,0,0,100,100,0,0,3,2,3,5,10,10,80,1
+Style: Default,Arial,48,&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,0,2,2,20,20,120,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """
         
-        # Group words into lines of 3-5 words
         words = script_text.split()
         if not words:
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(ass_content)
             return
         
-        # Create word groups (3-5 words per line)
-        word_groups = []
+        # Calculate word timings
+        word_timings = []
+        
+        if word_timestamps and len(word_timestamps) > 0:
+            # Use provided timestamps
+            for i, ts in enumerate(word_timestamps):
+                if isinstance(ts, dict) and 'word' in ts:
+                    word_timings.append({
+                        'word': ts['word'],
+                        'start': ts.get('start', 0),
+                        'end': ts.get('end', duration)
+                    })
+                elif isinstance(ts, dict) and 'character' in ts:
+                    word_timings.append({
+                        'word': ts['character'],
+                        'start': ts.get('start_time_ms', 0) / 1000.0,
+                        'end': ts.get('end_time_ms', duration * 1000) / 1000.0 if 'end_time_ms' in ts else (word_timestamps[i+1].get('start_time_ms', duration * 1000) / 1000.0 if i < len(word_timestamps) - 1 else duration)
+                    })
+        
+        # If no timestamps or parsing failed, distribute evenly
+        if not word_timings:
+            word_duration = duration / len(words) if words else 1.0
+            for i, word in enumerate(words):
+                word_timings.append({
+                    'word': word,
+                    'start': i * word_duration,
+                    'end': (i + 1) * word_duration
+                })
+        
+        # Group words into lines (3-5 words per line for readability)
+        groups = []
         current_group = []
-        for word in words:
-            current_group.append(word)
-            if len(current_group) >= 4 or (len(current_group) >= 3 and len(word) > 8):
-                word_groups.append(' '.join(current_group))
+        for wt in word_timings:
+            current_group.append(wt)
+            # Group size: 3-4 words, or break on long words
+            if len(current_group) >= 4 or (len(current_group) >= 3 and len(wt['word']) > 10):
+                groups.append(current_group)
                 current_group = []
         if current_group:
-            word_groups.append(' '.join(current_group))
+            groups.append(current_group)
         
-        # Calculate timing for each group
-        if not word_timestamps or len(word_timestamps) == 0:
-            # Simple time division
-            group_duration = duration / len(word_groups) if word_groups else 1.0
+        # Generate dialogue lines for each word highlight within each group
+        # This creates the TRUE karaoke effect: only the current word is yellow
+        for group in groups:
+            group_start = group[0]['start']
+            group_end = group[-1]['end']
             
-            current_time = 0.0
-            for group in word_groups:
-                start_time = FFmpegService.format_ass_time(current_time)
-                current_time += group_duration
-                end_time = FFmpegService.format_ass_time(current_time)
+            # For each word in the group, create a dialogue line where ONLY that word is yellow
+            for idx, current_word in enumerate(group):
+                word_start = current_word['start']
+                word_end = current_word['end']
                 
-                # Create karaoke effect for each word in the group
-                group_words = group.split()
-                word_duration = (group_duration / len(group_words)) * 100 if group_words else 100
+                # Build the text with color overrides
+                # {\c&H00FFFF&} = Yellow (BGR format: 00FFFF = Yellow)
+                # {\c&HFFFFFF&} = White
+                text_parts = []
+                for i, wt in enumerate(group):
+                    if i == idx:
+                        # Current word - YELLOW
+                        text_parts.append(f"{{\\c&H00FFFF&}}{wt['word']}{{\\c&HFFFFFF&}}")
+                    else:
+                        # Other words - WHITE (default)
+                        text_parts.append(wt['word'])
                 
-                karaoke_text = ''.join([f"{{\\k{int(word_duration)}}}{w} " for w in group_words])
-                ass_content += f"Dialogue: 0,{start_time},{end_time},Default,,0,0,0,,{karaoke_text}\n"
-        else:
-            # Use timestamps - group words based on timing
-            words_with_time = []
-            for i, char_data in enumerate(word_timestamps):
-                if isinstance(char_data, dict) and 'character' in char_data and 'start_time_ms' in char_data:
-                    words_with_time.append({
-                        'word': char_data['character'],
-                        'start_ms': char_data['start_time_ms'],
-                        'end_ms': word_timestamps[i+1]['start_time_ms'] if i < len(word_timestamps) - 1 else duration * 1000
-                    })
-            
-            # Group into lines
-            if words_with_time:
-                i = 0
-                while i < len(words_with_time):
-                    # Take 3-5 words
-                    group_size = min(4, len(words_with_time) - i)
-                    group = words_with_time[i:i+group_size]
-                    
-                    start_time = FFmpegService.format_ass_time(group[0]['start_ms'] / 1000.0)
-                    end_time = FFmpegService.format_ass_time(group[-1]['end_ms'] / 1000.0)
-                    
-                    # Create karaoke text
-                    karaoke_text = ''
-                    for word_data in group:
-                        duration_ms = word_data['end_ms'] - word_data['start_ms']
-                        karaoke_text += f"{{\\k{int(duration_ms / 10)}}}{word_data['word']} "
-                    
-                    ass_content += f"Dialogue: 0,{start_time},{end_time},Default,,0,0,0,,{karaoke_text}\n"
-                    i += group_size
+                line_text = ' '.join(text_parts)
+                start_time = FFmpegService.format_ass_time(word_start)
+                end_time = FFmpegService.format_ass_time(word_end)
+                
+                ass_content += f"Dialogue: 0,{start_time},{end_time},Default,,0,0,0,,{line_text}\n"
         
         # Write ASS file
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(ass_content)
         
-        logger.info(f"Created karaoke subtitles: {output_path}")
+        logger.info(f"Created TRUE karaoke subtitles: {output_path}")
     
     @staticmethod
     def format_ass_time(seconds: float) -> str:
