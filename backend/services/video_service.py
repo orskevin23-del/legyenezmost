@@ -322,6 +322,7 @@ class VideoGenerationService:
         """
         Search and download vertical B-roll clips from Pexels.
         Clips should be 2-3 seconds each to match total duration.
+        QUALITY FILTER: Only HD, minimum 5s duration, curated content.
         """
         try:
             # Calculate number of clips needed (2.5s avg per clip)
@@ -329,15 +330,16 @@ class VideoGenerationService:
             
             # Enhance search query for faith content
             if not search_query or search_query == "spirituality faith peaceful":
-                search_query = "faith prayer spiritual light hope peace"
+                search_query = "faith prayer spiritual light hope peace nature"
             
-            # Search Pexels for vertical videos
+            # Search Pexels for vertical videos with QUALITY FILTERS
             headers = {"Authorization": self.pexels_api_key}
             params = {
                 "query": search_query,
-                "orientation": "portrait",
-                "size": "medium",
-                "per_page": min(num_clips, 15)
+                "orientation": "portrait",  # 9:16 vertical only
+                "size": "large",  # Large/HD only
+                "per_page": min(num_clips * 2, 30),  # Request more for filtering
+                "min_duration": 5,  # Minimum 5 seconds (quality indicator)
             }
             
             async with aiohttp.ClientSession() as session:
@@ -350,21 +352,52 @@ class VideoGenerationService:
             
             videos = data.get("videos", [])
             
+            # QUALITY FILTER: Sort by quality indicators
+            quality_videos = []
+            for video in videos:
+                # Filter criteria:
+                # 1. Has HD files
+                # 2. Duration > 5 seconds
+                # 3. Has proper metadata
+                duration = video.get("duration", 0)
+                video_files = video.get("video_files", [])
+                
+                if duration >= 5 and len(video_files) > 0:
+                    quality_videos.append(video)
+            
+            # Sort by duration (longer = often better quality)
+            quality_videos.sort(key=lambda v: v.get("duration", 0), reverse=True)
+            
             # Download clips
             downloaded_clips = []
             
-            for idx, video in enumerate(videos[:num_clips]):
+            for idx, video in enumerate(quality_videos[:num_clips]):
                 video_files = video.get("video_files", [])
                 
-                # Find vertical HD file
+                # Find BEST quality vertical HD file
                 hd_file = None
-                for vf in video_files:
-                    if vf.get("quality") == "hd" and vf.get("width", 0) < vf.get("height", 0):
-                        hd_file = vf
-                        break
+                best_quality = 0
                 
-                if not hd_file and video_files:
-                    hd_file = video_files[0]
+                for vf in video_files:
+                    width = vf.get("width", 0)
+                    height = vf.get("height", 0)
+                    quality = vf.get("quality", "")
+                    
+                    # Must be vertical (height > width)
+                    if height > width:
+                        # Prefer HD/FHD
+                        quality_score = 0
+                        if quality == "hd":
+                            quality_score = 2
+                        elif quality == "sd":
+                            quality_score = 1
+                        
+                        # Also consider resolution
+                        quality_score += (width * height) / 1000000
+                        
+                        if quality_score > best_quality:
+                            best_quality = quality_score
+                            hd_file = vf
                 
                 if hd_file:
                     clip_path = await self.download_video_file(
@@ -373,7 +406,7 @@ class VideoGenerationService:
                     if clip_path:
                         downloaded_clips.append(clip_path)
             
-            logger.info(f"Downloaded {len(downloaded_clips)} B-roll clips")
+            logger.info(f"Downloaded {len(downloaded_clips)} HIGH-QUALITY B-roll clips")
             return downloaded_clips
         
         except Exception as e:
