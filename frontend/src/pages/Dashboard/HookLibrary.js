@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -34,6 +35,7 @@ import {
 
 export default function HookLibrary() {
   const { api } = useAuth();
+  const { t, language } = useLanguage();
   const [hooks, setHooks] = useState([]);
   const [filteredHooks, setFilteredHooks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -54,13 +56,13 @@ export default function HookLibrary() {
   const [tagInput, setTagInput] = useState('');
 
   const hookTypes = [
-    { value: 'emotional_trigger', label: 'Emotional Trigger' },
-    { value: 'urgency', label: 'Urgency' },
-    { value: 'identity_filter', label: 'Identity Filter' },
-    { value: 'reverse_psychology', label: 'Reverse Psychology' },
-    { value: 'not_for_everyone', label: 'Not For Everyone' },
-    { value: 'dominance_line', label: 'Dominance Line' },
-    { value: 'open_loop', label: 'Open Loop' }
+    { value: 'emotional_trigger', label: t('emotional_trigger') },
+    { value: 'urgency', label: t('urgency') },
+    { value: 'identity_filter', label: t('identity_filter') },
+    { value: 'reverse_psychology', label: t('reverse_psychology') },
+    { value: 'not_for_everyone', label: t('not_for_everyone') },
+    { value: 'dominance_line', label: t('dominance_line') },
+    { value: 'open_loop', label: t('open_loop') }
   ];
 
   useEffect(() => {
