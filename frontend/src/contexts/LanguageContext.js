@@ -927,14 +927,23 @@ export const LanguageProvider = ({ children }) => {
     localStorage.setItem('language', language);
   }, [language]);
 
-  const t = (key) => {
+  // Create t function that depends on current language
+  // Using useCallback to ensure stable reference but updated closure
+  const t = React.useCallback((key) => {
     // Map 'us' to 'en' for backwards compatibility
     const langCode = language === 'us' ? 'en' : language;
     return translations[langCode]?.[key] || translations['hu'][key] || key;
-  };
+  }, [language]);
+
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = React.useMemo(() => ({
+    language,
+    setLanguage,
+    t
+  }), [language, setLanguage, t]);
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={contextValue}>
       {children}
     </LanguageContext.Provider>
   );
