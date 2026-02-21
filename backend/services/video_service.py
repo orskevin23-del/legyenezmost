@@ -137,7 +137,8 @@ class VideoGenerationService:
                 voice_id=self.elevenlabs_voice_id,
                 model_id="eleven_turbo_v2_5",  # Latest stable model
                 voice_settings=settings,
-                output_format="mp3_44100_128"
+                output_format="mp3_44100_128",
+                seed=42  # Fixed seed for consistent first variation
             )
             
             # Note: Speed is applied via model capabilities in v3
