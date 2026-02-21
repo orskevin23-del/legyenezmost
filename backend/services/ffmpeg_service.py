@@ -298,8 +298,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             '-i', str(video_path),
             '-i', str(audio_path),
             '-filter_complex',
-            # Subtitles (no force_style - use ASS file)
-            f'[0:v]subtitles={subtitle_path}[video]',
+            # Subtitles with explicit colors
+            f'[0:v]subtitles={subtitle_path}:force_style=\'FontName=Arial Black,Fontsize=18,PrimaryColour=&H0000FFFF,Alignment=5,MarginV=150,Outline=3,Shadow=2\'[video]',
             '-map', '[video]',
             '-map', '1:a',
             '-c:v', 'libx264',
