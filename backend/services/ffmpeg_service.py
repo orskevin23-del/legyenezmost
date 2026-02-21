@@ -269,6 +269,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         Assemble video with TTS audio, background music, and subtitles.
         Apply volume ducking to music when TTS is playing.
         """
+        # Use subtitles filter without force_style - ASS file has all styling
         cmd = [
             'ffmpeg',
             '-i', str(video_path),
@@ -280,8 +281,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 f'[1:a]volume=1.0[voice];'
                 f'[2:a]volume=0.3[music];'
                 f'[voice][music]amix=inputs=2:duration=first:dropout_transition=2[audio];'
-                # Subtitles - CORRECT karaoke colors + blur shadow + center
-                f'[0:v]subtitles={subtitle_path}:force_style=\'FontName=Arial Black,Fontsize=14,PrimaryColour=&H0000FFFF,SecondaryColour=&H00FFFFFF,Alignment=5,MarginV=80,BorderStyle=3,Outline=2,Shadow=3,BackColour=&HAA000000\'[video]'
+                # Subtitles - let ASS file handle all styling
+                f'[0:v]subtitles={subtitle_path}[video]'
             ),
             '-map', '[video]',
             '-map', '[audio]',
@@ -310,13 +311,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         """
         Assemble video with TTS audio and subtitles (no background music).
         """
+        # Use subtitles filter without force_style - ASS file has all styling
         cmd = [
             'ffmpeg',
             '-i', str(video_path),
             '-i', str(audio_path),
             '-filter_complex',
-            # Subtitles - correct karaoke + blur shadow
-            f'[0:v]subtitles={subtitle_path}:force_style=\'FontName=Arial Black,Fontsize=14,PrimaryColour=&H0000FFFF,SecondaryColour=&H00FFFFFF,Alignment=5,MarginV=80,BorderStyle=3,Outline=2,Shadow=3,BackColour=&HAA000000\'[video]',
+            f'[0:v]subtitles={subtitle_path}[video]',
             '-map', '[video]',
             '-map', '1:a',
             '-c:v', 'libx264',
