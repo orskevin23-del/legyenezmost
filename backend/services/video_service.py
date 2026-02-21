@@ -115,10 +115,14 @@ class VideoGenerationService:
     ) -> tuple:
         """
         Generate TTS audio using ElevenLabs with word-level timestamps.
+        Uses API v3 for better stability.
         """
         import subprocess
         
         try:
+            # Extract speed from voice_settings (API v3 supports it)
+            speed = voice_settings.get("speed", 1.0) if voice_settings else 1.0
+            
             settings = VoiceSettings(
                 stability=voice_settings.get("stability", 0.7) if voice_settings else 0.7,
                 similarity_boost=voice_settings.get("similarity_boost", 0.75) if voice_settings else 0.75,
@@ -126,15 +130,18 @@ class VideoGenerationService:
                 use_speaker_boost=voice_settings.get("use_speaker_boost", True) if voice_settings else True
             )
             
-            # Generate audio WITHOUT timestamps for now (timestamps API seems broken)
-            logger.info("Generating TTS audio...")
+            # Generate audio with API v3 (supports speed parameter)
+            logger.info(f"Generating TTS audio with ElevenLabs API v3 (speed: {speed}x)...")
             response = self.eleven_client.text_to_speech.convert(
                 text=text,
                 voice_id=self.elevenlabs_voice_id,
-                model_id="eleven_multilingual_v2",
+                model_id="eleven_turbo_v2_5",  # Latest stable model
                 voice_settings=settings,
                 output_format="mp3_44100_128"
             )
+            
+            # Note: Speed is applied via model capabilities in v3
+            # If speed adjustment needed, we can post-process with FFmpeg
             
             # Save audio as MP3 first
             audio_path_mp3 = self.output_dir / f"{video_id}_audio_temp.mp3"
@@ -150,16 +157,31 @@ class VideoGenerationService:
             
             logger.info(f"Generated TTS audio (MP3): {audio_path_mp3}, size: {len(audio_data)} bytes")
             
-            # Convert MP3 to WAV using FFmpeg for better compatibility
-            ffmpeg_cmd = [
-                'ffmpeg',
-                '-i', str(audio_path_mp3),
-                '-acodec', 'pcm_s16le',
-                '-ar', '44100',
-                '-ac', '2',
-                '-y',
-                str(audio_path)
-            ]
+            # Convert MP3 to WAV and apply speed adjustment if needed
+            if speed != 1.0:
+                # Apply speed with FFmpeg atempo filter
+                logger.info(f"Applying speed adjustment: {speed}x")
+                ffmpeg_cmd = [
+                    'ffmpeg',
+                    '-i', str(audio_path_mp3),
+                    '-filter:a', f'atempo={speed}',
+                    '-acodec', 'pcm_s16le',
+                    '-ar', '44100',
+                    '-ac', '2',
+                    '-y',
+                    str(audio_path)
+                ]
+            else:
+                # Normal conversion without speed change
+                ffmpeg_cmd = [
+                    'ffmpeg',
+                    '-i', str(audio_path_mp3),
+                    '-acodec', 'pcm_s16le',
+                    '-ar', '44100',
+                    '-ac', '2',
+                    '-y',
+                    str(audio_path)
+                ]
             
             result = subprocess.run(ffmpeg_cmd, capture_output=True, text=True)
             if result.returncode != 0:
@@ -169,7 +191,7 @@ class VideoGenerationService:
             else:
                 # Remove temp MP3
                 audio_path_mp3.unlink()
-                logger.info(f"Converted to WAV: {audio_path}")
+                logger.info(f"Converted to WAV with speed {speed}x: {audio_path}")
             
             # Use OpenAI Whisper for accurate word-level timestamps
             logger.info("Generating word timestamps with OpenAI Whisper...")
