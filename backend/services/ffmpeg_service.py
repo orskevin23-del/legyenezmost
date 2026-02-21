@@ -239,7 +239,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         # Other words - WHITE  
                         parts.append("{\\c&HFFFFFF&}" + wt['word'])
                 
-                line_text = " ".join(parts)
+                # Add \an5 tag to FORCE middle-center alignment
+                line_text = "{\\an5}" + " ".join(parts)
                 start = FFmpegService.format_ass_time(word_start)
                 end = FFmpegService.format_ass_time(word_end)
                 

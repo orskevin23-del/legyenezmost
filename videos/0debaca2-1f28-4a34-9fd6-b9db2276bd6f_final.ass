@@ -1,0 +1,24 @@
+[Script Info]
+Title: Karaoke Subtitles
+ScriptType: v4.00+
+WrapStyle: 0
+ScaledBorderAndShadow: yes
+PlayResX: 1080
+PlayResY: 1920
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Arial,50,&H00FFFFFF,&H00FFFFFF,&H40000000,&H00000000,1,0,0,0,100,100,0,0,1,2,3,5,20,20,0,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.00,0:00:00.57,Default,,0,0,0,,{\c&H00FFFF&}Manchmal {\c&HFFFFFF&}fühlt {\c&HFFFFFF&}es {\c&HFFFFFF&}sich
+Dialogue: 0,0:00:00.57,0:00:00.87,Default,,0,0,0,,{\c&HFFFFFF&}Manchmal {\c&H00FFFF&}fühlt {\c&HFFFFFF&}es {\c&HFFFFFF&}sich
+Dialogue: 0,0:00:00.87,0:00:01.01,Default,,0,0,0,,{\c&HFFFFFF&}Manchmal {\c&HFFFFFF&}fühlt {\c&H00FFFF&}es {\c&HFFFFFF&}sich
+Dialogue: 0,0:00:01.01,0:00:01.24,Default,,0,0,0,,{\c&HFFFFFF&}Manchmal {\c&HFFFFFF&}fühlt {\c&HFFFFFF&}es {\c&H00FFFF&}sich
+Dialogue: 0,0:00:01.24,0:00:01.48,Default,,0,0,0,,{\c&H00FFFF&}an {\c&HFFFFFF&}als {\c&HFFFFFF&}ob {\c&HFFFFFF&}alles
+Dialogue: 0,0:00:01.55,0:00:01.70,Default,,0,0,0,,{\c&HFFFFFF&}an {\c&H00FFFF&}als {\c&HFFFFFF&}ob {\c&HFFFFFF&}alles
+Dialogue: 0,0:00:01.70,0:00:01.86,Default,,0,0,0,,{\c&HFFFFFF&}an {\c&HFFFFFF&}als {\c&H00FFFF&}ob {\c&HFFFFFF&}alles
+Dialogue: 0,0:00:01.86,0:00:02.18,Default,,0,0,0,,{\c&HFFFFFF&}an {\c&HFFFFFF&}als {\c&HFFFFFF&}ob {\c&H00FFFF&}alles
+Dialogue: 0,0:00:02.18,0:00:02.74,Default,,0,0,0,,{\c&H00FFFF&}verloren {\c&HFFFFFF&}ist
+Dialogue: 0,0:00:02.74,0:00:03.14,Default,,0,0,0,,{\c&HFFFFFF&}verloren {\c&H00FFFF&}ist
