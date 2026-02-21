@@ -263,8 +263,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 f'[1:a]volume=1.0[voice];'
                 f'[2:a]volume=0.3[music];'
                 f'[voice][music]amix=inputs=2:duration=first:dropout_transition=2[audio];'
-                # Subtitles with EXPLICIT force_style for karaoke colors
-                f'[0:v]subtitles={subtitle_path}:force_style=\'FontName=Arial Black,Fontsize=18,PrimaryColour=&H0000FFFF,Alignment=5,MarginV=150,Outline=3,Shadow=2\'[video]'
+                # Subtitles - karaoke with white base, yellow highlight
+                f'[0:v]subtitles={subtitle_path}:force_style=\'FontName=Arial Black,Fontsize=14,PrimaryColour=&H00FFFFFF,SecondaryColour=&H0000FFFF,Alignment=2,MarginV=150,Outline=3,Shadow=2\'[video]'
             ),
             '-map', '[video]',
             '-map', '[audio]',
@@ -298,8 +298,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             '-i', str(video_path),
             '-i', str(audio_path),
             '-filter_complex',
-            # Subtitles with explicit colors
-            f'[0:v]subtitles={subtitle_path}:force_style=\'FontName=Arial Black,Fontsize=18,PrimaryColour=&H0000FFFF,Alignment=5,MarginV=150,Outline=3,Shadow=2\'[video]',
+            # Subtitles - karaoke colors
+            f'[0:v]subtitles={subtitle_path}:force_style=\'FontName=Arial Black,Fontsize=14,PrimaryColour=&H00FFFFFF,SecondaryColour=&H0000FFFF,Alignment=2,MarginV=150,Outline=3,Shadow=2\'[video]',
             '-map', '[video]',
             '-map', '1:a',
             '-c:v', 'libx264',
