@@ -519,6 +519,24 @@ export default function VideoFactory() {
                     className="w-full"
                   />
                 </div>
+
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <Label className="text-zinc-300">Speed (Sebesség)</Label>
+                    <span className="text-zinc-400 text-sm">{voiceSettings.speed.toFixed(2)}x</span>
+                  </div>
+                  <Slider
+                    value={[voiceSettings.speed]}
+                    onValueChange={([value]) => setVoiceSettings({...voiceSettings, speed: value})}
+                    min={0.25}
+                    max={2.0}
+                    step={0.05}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-zinc-500 mt-1">
+                    0.25x (nagyon lassú) - 2.0x (nagyon gyors)
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
