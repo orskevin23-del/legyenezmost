@@ -31,6 +31,8 @@ export default function LanguageSwitcher() {
   const handleLanguageChange = (langCode) => {
     setLanguage(langCode);
     setIsOpen(false);
+    // Force page reload to apply new language to all components
+    window.location.reload();
   };
 
   return (
