@@ -98,32 +98,32 @@ export default function DashboardOverview() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               <div className="w-full">
                 <p className="text-xs sm:text-sm text-zinc-500 mb-1">{t('avg_retention')}</p>
-                <p className="text-4xl font-bold text-white">{stats.avg_retention.toFixed(1)}%</p>
+                <p className="text-2xl sm:text-4xl font-bold text-white">{stats.avg_retention.toFixed(1)}%</p>
               </div>
-              <div className="p-3 bg-green-400/10 rounded-xl">
-                <TrendingUp className="text-green-400" size={24} />
+              <div className="p-2 sm:p-3 bg-green-400/10 rounded-xl">
+                <TrendingUp className="text-green-400" size={20} />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-zinc-900/50 border-zinc-800 backdrop-blur">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-zinc-500 mb-1">{t('swipe_rate')}</p>
-                <p className="text-4xl font-bold text-white">{stats.avg_swipe_rate.toFixed(1)}%</p>
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+              <div className="w-full">
+                <p className="text-xs sm:text-sm text-zinc-500 mb-1">{t('swipe_rate')}</p>
+                <p className="text-2xl sm:text-4xl font-bold text-white">{stats.avg_swipe_rate.toFixed(1)}%</p>
               </div>
-              <div className="p-3 bg-purple-400/10 rounded-xl">
-                <Zap className="text-purple-400" size={24} />
+              <div className="p-2 sm:p-3 bg-purple-400/10 rounded-xl">
+                <Zap className="text-purple-400" size={20} />
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Quick Actions - Large Buttons */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Quick Actions - Mobile Optimized */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         <Link to="/dashboard/scripts" className="group">
           <Card className="bg-gradient-to-br from-amber-400/10 to-amber-600/5 border-amber-400/20 hover:border-amber-400/50 transition-all cursor-pointer h-full">
             <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
