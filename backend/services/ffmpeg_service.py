@@ -264,7 +264,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 f'[2:a]volume=0.3[music];'
                 f'[voice][music]amix=inputs=2:duration=first:dropout_transition=2[audio];'
                 # Subtitles
-                f'[0:v]subtitles={subtitle_path}:force_style=\'Fontsize=38,PrimaryColour=&H00FFFFFF,SecondaryColour=&H00FFFF00,Outline=3,Shadow=2,MarginV=150\'[video]'
+                f'[0:v]subtitles={subtitle_path}:force_style=\'Fontsize=32,PrimaryColour=&H00FFFFFF,SecondaryColour=&H00FFFF00,Outline=3,Shadow=2,MarginV=150\'[video]'
             ),
             '-map', '[video]',
             '-map', '[audio]',
@@ -298,7 +298,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             '-i', str(video_path),
             '-i', str(audio_path),
             '-filter_complex',
-            f'[0:v]subtitles={subtitle_path}:force_style=\'Fontsize=38,PrimaryColour=&H00FFFFFF,SecondaryColour=&H00FFFF00,Outline=3,Shadow=2,MarginV=150\'[video]',
+            f'[0:v]subtitles={subtitle_path}:force_style=\'Fontsize=32,PrimaryColour=&H00FFFFFF,SecondaryColour=&H00FFFF00,Outline=3,Shadow=2,MarginV=150\'[video]',
             '-map', '[video]',
             '-map', '1:a',
             '-c:v', 'libx264',
