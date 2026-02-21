@@ -163,7 +163,7 @@ export default function HookLibrary() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-amber-400 text-lg">Betöltés...</div>
+        <div className="text-amber-400 text-lg">{t('loading')}</div>
       </div>
     );
   }
@@ -174,37 +174,37 @@ export default function HookLibrary() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold text-white mb-2">
-            Hook Könyvtár
+            {t('hook_library')}
           </h1>
           <p className="text-zinc-400">
-            {filteredHooks.length} hook • Automatikus és manuális gyűjtemény
+            {filteredHooks.length} {t('hook_count')} • {t('hook_library_subtitle')}
           </p>
         </div>
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogTrigger asChild>
             <Button className="bg-amber-400 hover:bg-amber-500 text-zinc-950 font-semibold">
               <Plus size={16} className="mr-2" />
-              Új Hook
+              {t('create_hook')}
             </Button>
           </DialogTrigger>
           <DialogContent className="bg-zinc-900 border-zinc-800">
             <DialogHeader>
-              <DialogTitle className="text-white">Új Hook Létrehozása</DialogTitle>
+              <DialogTitle className="text-white">{t('create_hook_title')}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 mt-4">
               <div>
-                <Label className="text-zinc-300">Hook Szöveg</Label>
+                <Label className="text-zinc-300">{t('hook_text')}</Label>
                 <Input
                   value={newHook.hook_text}
                   onChange={(e) => setNewHook({ ...newHook, hook_text: e.target.value })}
-                  placeholder="Weißt du, was wirklich zählt?"
+                  placeholder={t('hook_text_placeholder')}
                   className="bg-zinc-800 border-zinc-700 text-white mt-1"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-zinc-300">Mód</Label>
+                  <Label className="text-zinc-300">{t('mode')}</Label>
                   <Select value={newHook.mode} onValueChange={(val) => setNewHook({ ...newHook, mode: val })}>
                     <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white mt-1">
                       <SelectValue />
@@ -217,7 +217,7 @@ export default function HookLibrary() {
                 </div>
 
                 <div>
-                  <Label className="text-zinc-300">Hook Típus</Label>
+                  <Label className="text-zinc-300">{t('hook_type')}</Label>
                   <Select value={newHook.hook_type} onValueChange={(val) => setNewHook({ ...newHook, hook_type: val })}>
                     <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white mt-1">
                       <SelectValue />
@@ -232,13 +232,13 @@ export default function HookLibrary() {
               </div>
 
               <div>
-                <Label className="text-zinc-300">Tagek</Label>
+                <Label className="text-zinc-300">{t('tags')}</Label>
                 <div className="flex space-x-2 mt-1">
                   <Input
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && addTag()}
-                    placeholder="pl. Hoffnung"
+                    placeholder={t('tag_placeholder')}
                     className="bg-zinc-800 border-zinc-700 text-white"
                   />
                   <Button onClick={addTag} variant="outline" className="border-zinc-700">
@@ -258,7 +258,7 @@ export default function HookLibrary() {
               </div>
 
               <div>
-                <Label className="text-zinc-300">Átlag Retention %</Label>
+                <Label className="text-zinc-300">{t('avg_retention')}</Label>
                 <Input
                   type="number"
                   value={newHook.avg_retention}
@@ -272,7 +272,7 @@ export default function HookLibrary() {
                 onClick={handleCreateHook}
                 className="w-full bg-amber-400 hover:bg-amber-500 text-zinc-950"
               >
-                Hook Létrehozása
+                {t('create_hook')}
               </Button>
             </div>
           </DialogContent>
