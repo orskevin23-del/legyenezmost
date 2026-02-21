@@ -87,3 +87,7 @@ videos/66e4203f-be58-4645-9644-570f6e737168_broll_0.mp4
 videos/0872eeed-4ed9-422c-bae1-d6c323b2700b_broll_0.mp4
 videos/0872eeed-4ed9-422c-bae1-d6c323b2700b_broll_1.mp4
 videos/aefd7549-f438-4fba-80ab-b28c85a5aca7_broll_1.mp4
+-e 
+# Environment files
+*.env
+*.env.*
